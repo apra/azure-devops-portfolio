@@ -1,0 +1,18 @@
+# CODEOWNERS
+# Routes PRs to the right reviewer based on which files changed.
+# GitHub auto-requests review from the matching owner(s) below.
+#
+# This is a solo portfolio project, so all services point to the same
+# owner (@apra) — the routing pattern is what's being demonstrated here,
+# not genuine multi-person ownership. Noted in the README as well.
+
+# Each service is "owned" by a different persona in a real team; here
+# they all resolve to the same person to demonstrate the mechanism.
+/auth-service/          @apra
+/orders-service/        @apra
+/notifications-service/ @apra
+
+# Shared/root-level files require review from a platform owner,
+# since changes here affect every team.
+/.github/                @apra
+/README.md                @apra
