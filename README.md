@@ -54,8 +54,8 @@ what was built, what broke, and what was learned.
 - [x] 3 services scaffolded with independent ownership (CODEOWNERS)
 - [x] Lint (ruff) + format (black) + tests (pytest) passing on all 3 services
 - [x] Path-based CI workflow written (`.github/workflows/ci.yml`)
-- [ ] Branch protection enabled on `main` (PR required, 1 approval, passing CI)
-- [ ] 10+ real merged PRs demonstrating the workflow
+- [x] Branch protection enabled on `main` (PR required, 1 approval, passing CI)
+- [ ] 10+ real merged PRs demonstrating the workflow (1/10)
 
 **Engineering standards applied throughout:** ruff + black enforced in CI (not
 just locally), pytest with real endpoint coverage, `.env.example` documenting
