@@ -49,18 +49,41 @@ This section grows as each project is completed — a running record of
 what was built, what broke, and what was learned.
 
 ### Project 1 — Multi-team monorepo with governed contribution
-*Status: in progress*
+*Status: nearly complete*
 
 - [x] 3 services scaffolded with independent ownership (CODEOWNERS)
 - [x] Lint (ruff) + format (black) + tests (pytest) passing on all 3 services
 - [x] Path-based CI workflow written (`.github/workflows/ci.yml`)
-- [x] Branch protection enabled on `main` (PR required, 1 approval, passing CI)
-- [ ] 10+ real merged PRs demonstrating the workflow (1/10)
+- [x] Ruleset on `main`: PR required, approval required, CI Summary required, force pushes and deletions blocked
+- [x] Gate proven: PR #5 was blocked by failing CI and merged only after the fix (see incident log below)
+- [x] Design decision recorded: `docs/adr/0001-monorepo-with-path-based-ci.md`
+- [ ] Replace the `dorny/paths-filter` action with an in-repo change-detection script (deferred)
 
 **Engineering standards applied throughout:** ruff + black enforced in CI (not
 just locally), pytest with real endpoint coverage, `.env.example` documenting
 required config without ever containing real secrets, Key Vault planned for
 Project 2 onward for anything that is a real credential.
+
+#### Incident log: black formatting failure on PR #5 (2026-10-06)
+
+**What happened:** PR #5 added a `/version` endpoint to `auth-service`. The
+`auth-service` CI job failed at the black format check, so `CI Summary`
+failed and the ruleset blocked the merge.
+
+**Cause:** two formatting issues in the new code: one blank line instead of
+two before the new function, and no newline at the end of the test file.
+Locally I had only confirmed pytest passed, so the formatting problems were
+not caught before pushing.
+
+**Detection:** the required `CI Summary` check, before any review approval.
+
+**Fix:** ran `black` locally, reviewed the diff, and pushed a follow-up
+commit to the same branch. CI re-ran and passed; the PR was then approved
+and squash-merged.
+
+**Lesson:** run the full check set (ruff, black, pytest) locally before
+pushing, not just the tests. A pre-commit hook would enforce this
+automatically and is a possible follow-up.
 
 ### Project 2 — Infra you can't tear down
 *Status: not started*
