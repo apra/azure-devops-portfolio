@@ -38,6 +38,7 @@ def health():
         "timestamp": datetime.now(UTC).isoformat(),
     }
 
+
 @app.get("/version")
 def version():
     """
