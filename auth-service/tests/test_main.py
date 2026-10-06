@@ -30,3 +30,11 @@ def test_login_without_password_returns_error():
     response = client.post("/login", params={"username": "alice", "password": ""})
     assert response.status_code == 200
     assert "error" in response.json()
+
+
+def test_version_returns_service_and_version():
+    response = client.get("/version")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["service"] == "auth-service"
+    assert body["version"] == "0.1.0"

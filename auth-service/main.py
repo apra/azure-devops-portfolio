@@ -39,6 +39,18 @@ def health():
     }
 
 
+@app.get("/version")
+def version():
+    """
+    Report which version of the service is running. Used to confirm a
+    deployment rolled out the expected version.
+    """
+    return {
+        "service": SERVICE_NAME,
+        "version": SERVICE_VERSION,
+    }
+
+
 @app.post("/login")
 def login(username: str, password: str):
     """
