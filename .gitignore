@@ -11,3 +11,11 @@ env/
 .ruff_cache/
 .DS_Store
 *.log
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfplan
+tfplan

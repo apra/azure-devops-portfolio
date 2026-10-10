@@ -58,5 +58,6 @@ Every resource that supports tags carries:
   and Azure Policy can later enforce the required tags.
 - Negative: the storage account exception means one resource breaks the
   pattern, and a random suffix is needed for uniqueness.
-- Negative: tags must be applied on every resource. Terraform default tags
-  on the provider will cover most of this.
+- Negative: tags must be applied on every resource. The azurerm provider has
+  no default_tags feature, so a shared local.tags map is passed to each
+  resource.
