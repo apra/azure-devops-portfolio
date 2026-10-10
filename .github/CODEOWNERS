@@ -14,3 +14,5 @@
 # since changes here affect every team.
 /.github/                @apra-reviewer
 /README.md                @apra-reviewer
+/docs/ @apra-reviewer
+/infra/ @apra-reviewer
