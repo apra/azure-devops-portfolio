@@ -61,3 +61,6 @@ Every resource that supports tags carries:
 - Negative: tags must be applied on every resource. The azurerm provider has
   no default_tags feature, so a shared local.tags map is passed to each
   resource.
+- Exception: Entra app registrations, service principals and role assignments
+  do not support the key-value tags above. They are identified by the app-
+  prefix on the display name instead (for example app-portfolio-github-plan).
