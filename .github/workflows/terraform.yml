@@ -2,9 +2,6 @@ name: Terraform
 
 on:
   pull_request:
-    paths:
-      - "infra/terraform/**"
-      - ".github/workflows/terraform.yml"
 
 permissions:
   contents: read
@@ -18,8 +15,28 @@ env:
   TF_IN_AUTOMATION: "true"
 
 jobs:
+  changes:
+    name: Detect Terraform changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      terraform: ${{ steps.filter.outputs.terraform }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            terraform:
+              - 'infra/terraform/**'
+              - '.github/workflows/terraform.yml'
+
   fmt:
     name: Terraform fmt
+    needs: changes
+    if: needs.changes.outputs.terraform == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +48,8 @@ jobs:
 
   validate:
     name: Terraform validate (${{ matrix.env }})
+    needs: changes
+    if: needs.changes.outputs.terraform == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -51,8 +70,9 @@ jobs:
 
   plan:
     name: Terraform plan (dev)
+    needs: [changes, fmt, validate]
+    if: needs.changes.outputs.terraform == 'true'
     runs-on: ubuntu-latest
-    needs: [fmt, validate]
     permissions:
       contents: read
       id-token: write
@@ -76,3 +96,17 @@ jobs:
         run: terraform init -backend-config=backend.hcl -input=false
       - name: Plan
         run: terraform plan -input=false -no-color -lock-timeout=5m
+
+  terraform-summary:
+    name: Terraform Summary (required check)
+    needs: [changes, fmt, validate, plan]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any job failed or was cancelled
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: |
+          echo "One or more Terraform jobs failed or were cancelled."
+          exit 1
+      - name: Report
+        run: echo "Terraform checks passed, or were skipped because no Terraform files changed."
