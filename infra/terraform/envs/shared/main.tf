@@ -19,7 +19,7 @@ resource "azuread_application_federated_identity_credential" "github_pr" {
   description    = "GitHub Actions runs triggered by pull requests"
   audiences      = ["api://AzureADTokenExchange"]
   issuer         = "https://token.actions.githubusercontent.com"
-  subject        = "repo:apra/azure-devops-portfolio:pull_request"
+  subject        = "repo:apra@112661093/azure-devops-portfolio@1390723432:pull_request"
 }
 
 resource "azurerm_role_assignment" "plan_reader" {
