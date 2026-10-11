@@ -9,6 +9,6 @@ locals {
 
 resource "azurerm_resource_group" "main" {
   name     = "rg-portfolio-dev-uks-001"
-  location = "uksouth"
+      location = "uksouth"
   tags     = local.tags
 }
