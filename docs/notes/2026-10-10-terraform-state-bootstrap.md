@@ -46,8 +46,8 @@ everything after that is Terraform.
 The first run created the resource group, then failed at the storage account
 step with SubscriptionNotFound. I checked the subscription state and whether
 Microsoft.Storage was registered, then re-ran the script, which is safe to
-repeat, and it completed. [EDIT: write what you actually saw and what
-cleared it.]
+repeat, and it completed. The cause was that Microsoft.Storage was not registered on the new
+subscription. Registering it with az provider register fixed it.
 
 ## Trade-offs
 - These resources are not managed by Terraform, so they could drift. I
