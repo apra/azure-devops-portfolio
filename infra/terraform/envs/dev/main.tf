@@ -10,5 +10,5 @@ locals {
 resource "azurerm_resource_group" "main" {
   name     = "rg-portfolio-dev-uks-001"
   location = "uksouth"
-  tags     = local.tags
+  tags     = merge(local.tags, { deployed-via = "github-actions" })
 }
