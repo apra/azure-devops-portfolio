@@ -54,7 +54,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        env: [dev, shared]
+        env: [dev, dev-app, shared]
     defaults:
       run:
         working-directory: infra/terraform/envs/${{ matrix.env }}
@@ -69,10 +69,14 @@ jobs:
         run: terraform validate
 
   plan:
-    name: Terraform plan (dev)
+    name: Terraform plan (${{ matrix.env }})
     needs: [changes, fmt, validate]
     if: needs.changes.outputs.terraform == 'true'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        env: [dev, dev-app]
     permissions:
       contents: read
       id-token: write
@@ -80,7 +84,7 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
     defaults:
       run:
-        working-directory: infra/terraform/envs/dev
+        working-directory: infra/terraform/envs/${{ matrix.env }}
     steps:
       - uses: actions/checkout@v4
       - name: Sign in to Azure with OIDC
