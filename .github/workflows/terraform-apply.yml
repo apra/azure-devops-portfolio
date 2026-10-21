@@ -9,98 +9,16 @@ on:
 permissions:
   contents: read
 
-# Never run two applies at once, and never cancel one halfway through.
+# Never run two applies of this stack at once, and never cancel one halfway.
 concurrency:
   group: terraform-apply-dev
   cancel-in-progress: false
 
-env:
-  TF_VERSION: "1.16.1"
-  TF_IN_AUTOMATION: "true"
-  WORKING_DIR: infra/terraform/envs/dev
-  ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-  ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
-
 jobs:
-  plan:
-    name: Plan (dev)
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-          terraform_wrapper: false
-
-      # No "environment" on this job, so it uses the repo-level read-only identity.
-      - uses: azure/login@v2
-        with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Terraform init
-        working-directory: ${{ env.WORKING_DIR }}
-        run: terraform init -backend-config=backend.hcl -input=false
-
-      - name: Terraform plan
-        working-directory: ${{ env.WORKING_DIR }}
-        run: terraform plan -input=false -no-color -lock-timeout=5m -out=tfplan
-
-      - name: Show the plan to the approver
-        working-directory: ${{ env.WORKING_DIR }}
-        run: |
-          {
-            echo '### Terraform plan (dev)'
-            echo '```'
-            terraform show -no-color tfplan
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: tfplan-dev
-          path: ${{ env.WORKING_DIR }}/tfplan
-          retention-days: 1
-          if-no-files-found: error
-
   apply:
-    name: Apply (dev)
-    needs: plan
-    runs-on: ubuntu-latest
-    # Pauses here until apra-reviewer approves. The environment's AZURE_CLIENT_ID
-    # variable (the apply identity) overrides the repo-level one for this job only.
-    environment: dev
+    uses: ./.github/workflows/terraform-apply-stack.yml
+    with:
+      stack: dev
     permissions:
       contents: read
       id-token: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-          terraform_wrapper: false
-
-      - uses: azure/login@v2
-        with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Terraform init
-        working-directory: ${{ env.WORKING_DIR }}
-        run: terraform init -backend-config=backend.hcl -input=false
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: tfplan-dev
-          path: ${{ env.WORKING_DIR }}
-
-      - name: Terraform apply (the exact reviewed plan)
-        working-directory: ${{ env.WORKING_DIR }}
-        run: terraform apply -input=false -lock-timeout=5m tfplan

@@ -1,0 +1,23 @@
+name: Terraform Apply (dev-app)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/terraform/envs/dev-app/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-apply-dev-app
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    uses: ./.github/workflows/terraform-apply-stack.yml
+    with:
+      stack: dev-app
+    permissions:
+      contents: read
+      id-token: write
