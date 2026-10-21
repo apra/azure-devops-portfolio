@@ -10,6 +10,11 @@ on:
         description: Folder name under infra/terraform/envs
         required: true
         type: string
+      destroy:
+        description: Plan and apply a destroy instead of a normal apply
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -49,13 +54,13 @@ jobs:
 
       - name: Terraform plan
         working-directory: ${{ env.WORKING_DIR }}
-        run: terraform plan -input=false -no-color -lock-timeout=5m -out=tfplan
+        run: terraform plan -input=false -no-color -lock-timeout=5m ${{ inputs.destroy && '-destroy' || '' }} -out=tfplan
 
       - name: Show the plan to the approver
         working-directory: ${{ env.WORKING_DIR }}
         run: |
           {
-            echo '### Terraform plan (${{ inputs.stack }})'
+            echo '### Terraform ${{ inputs.destroy && 'DESTROY plan' || 'plan' }} (${{ inputs.stack }})'
             echo '```'
             terraform show -no-color tfplan
             echo '```'

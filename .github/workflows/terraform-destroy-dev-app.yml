@@ -1,0 +1,28 @@
+name: Terraform Destroy (dev-app)
+
+# Manual only. Never runs on push. Tears down the billable dev-app stack.
+# The foundation (envs/dev) and shared stacks are never touched.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Same group as the dev-app apply workflow, so a destroy and an apply can
+# never run at the same time against the same state.
+concurrency:
+  group: terraform-apply-dev-app
+  cancel-in-progress: false
+
+jobs:
+  destroy:
+    # Only the reviewed code on main may be used to destroy anything.
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/terraform-apply-stack.yml
+    with:
+      stack: dev-app
+      destroy: true
+    permissions:
+      contents: read
+      id-token: write
