@@ -54,3 +54,34 @@ From this point, changes to `envs/dev` are applied by the pipeline only.
 Every dev change gets a reviewed pull request, a visible plan, a human approval
 and an audit trail. Changes to shared modules outside `envs/dev` will need their
 paths added to the workflow trigger.
+
+## Exceptions log, October 2026
+
+Each entry is a change made outside the gated pipeline, with the reason and the follow-up.
+
+### 2026-10-23: manual deletion of the dev-app web app and plan
+The gated destroy could not run: the plan identity (Reader) cannot perform
+`Microsoft.Web/sites/config/list/action`, which Terraform needs to refresh a web app in state.
+The local Azure CLI sign-in was also blocked by Entra security defaults. To stop billing,
+the web app and App Service plan were deleted in the portal. State was left as is; the next
+plan treats both as missing. Follow-up: Issue 47.
+
+### 2026-10-24: shared stack applied manually from the Issue 47 branch
+The custom role `Portfolio Plan - App Service Config Reader` (one action) and its assignment
+to the plan identity on the dev resource group were applied by hand before merge, as with
+earlier shared-stack changes, because the shared stack manages the pipeline identities themselves.
+Trade-off: the plan identity can now read App Service configuration, which can include app
+settings. Mitigation: no secret values in app settings, Key Vault references only. Pull request
+workflows run with the plan identity from the branch's own workflow file, so workflow changes
+need extra review.
+
+### 2026-10-24: dedicated admin identity and its state access
+Entra security defaults require MFA for Azure CLI and the portal and block device code flow.
+The personal Microsoft account used until now could not satisfy this for the CLI. A cloud-only
+admin user was created in the tenant (Global Administrator; Owner on the subscription with a
+condition that excludes assigning Owner, User Access Administrator and RBAC Administrator),
+with Microsoft Authenticator registered. It was given Storage Blob Data Contributor on the
+`tfstate` container only, by hand, because Owner does not include blob data access.
+Follow-ups: bring the admin's state access into the bootstrap script or shared stack; reduce
+Global Administrator to narrower roles once bootstrap work is done; use browser sign-in
+(`core.enable_broker_on_windows=false`), never device code.
