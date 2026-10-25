@@ -78,3 +78,79 @@ output "web_app_default_hostname" {
   description = "Default hostname of the web app. Public for now; closed when the private endpoint is added."
   value       = azurerm_linux_web_app.main.default_hostname
 }
+
+# The subnet reserved for build agents. Owned by the foundation stack.
+data "azurerm_subnet" "agents" {
+  name                 = "snet-agents"
+  virtual_network_name = data.azurerm_virtual_network.foundation.name
+  resource_group_name  = data.azurerm_resource_group.foundation.name
+}
+
+# The VM's network card. No public IP is attached, so nothing on the internet
+# can reach this machine.
+resource "azurerm_network_interface" "agent" {
+  name                = "nic-agent-dev-uks-001"
+  resource_group_name = data.azurerm_resource_group.foundation.name
+  location            = data.azurerm_resource_group.foundation.location
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = data.azurerm_subnet.agents.id
+    private_ip_address_allocation = "Dynamic"
+  }
+
+  tags = local.tags
+}
+
+# The build agent machine. Agent software is installed in a later PR.
+resource "azurerm_linux_virtual_machine" "agent" {
+  name                = "vm-agent-dev-uks-001"
+  resource_group_name = data.azurerm_resource_group.foundation.name
+  location            = data.azurerm_resource_group.foundation.location
+  size                = "Standard_B1s"
+
+  network_interface_ids = [azurerm_network_interface.agent.id]
+
+  # Key-only login. Passwords are disabled, so there is no password to leak.
+  # The public key is safe to commit; the private key never leaves my laptop.
+  admin_username                  = "azureagent"
+  disable_password_authentication = true
+
+  admin_ssh_key {
+    username   = "azureagent"
+    public_key = trimspace(file("${path.module}/agent_ssh_key.pub"))
+  }
+
+  # Lets the VM get its own Entra identity, so later it can be granted access
+  # to Azure resources without any stored password.
+  identity {
+    type = "SystemAssigned"
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "StandardSSD_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "ubuntu-24_04-lts"
+    sku       = "server"
+    version   = "latest"
+  }
+
+  # Empty block = boot logs stored in Azure-managed storage.
+  boot_diagnostics {}
+
+  tags = local.tags
+}
+
+output "agent_private_ip" {
+  description = "Private IP of the build agent (no public IP exists)"
+  value       = azurerm_network_interface.agent.private_ip_address
+}
+
+output "agent_identity_principal_id" {
+  description = "Entra object ID of the agent's managed identity, used for RBAC later"
+  value       = azurerm_linux_virtual_machine.agent.identity[0].principal_id
+}
