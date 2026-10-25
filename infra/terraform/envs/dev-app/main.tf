@@ -107,9 +107,11 @@ resource "azurerm_linux_virtual_machine" "agent" {
   name                = "vm-agent-dev-uks-001"
   resource_group_name = data.azurerm_resource_group.foundation.name
   location            = data.azurerm_resource_group.foundation.location
-  size                = "Standard_B1s"
+  size                = "Standard_D2nls_v6"
 
   network_interface_ids = [azurerm_network_interface.agent.id]
+  # This size only supports the NVMe disk controller (checked with az vm list-skus).
+  disk_controller_type = "NVMe"
 
   # Key-only login. Passwords are disabled, so there is no password to leak.
   # The public key is safe to commit; the private key never leaves my laptop.
