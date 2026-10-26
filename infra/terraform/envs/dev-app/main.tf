@@ -156,3 +156,35 @@ output "agent_identity_principal_id" {
   description = "Entra object ID of the agent's managed identity, used for RBAC later"
   value       = azurerm_linux_virtual_machine.agent.identity[0].principal_id
 }
+
+# Static public IP: the single address all agent outbound traffic will appear to come from.
+resource "azurerm_public_ip" "nat" {
+  name                = "pip-nat-dev-uks-001"
+  resource_group_name = data.azurerm_resource_group.foundation.name
+  location            = data.azurerm_resource_group.foundation.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  tags                = local.tags
+}
+
+# The NAT gateway itself: outbound-only translation for whatever subnet it is attached to.
+resource "azurerm_nat_gateway" "main" {
+  name                    = "natgw-dev-uks-001"
+  resource_group_name     = data.azurerm_resource_group.foundation.name
+  location                = data.azurerm_resource_group.foundation.location
+  sku_name                = "Standard"
+  idle_timeout_in_minutes = 4
+  tags                    = local.tags
+}
+
+# Attach the public IP to the gateway.
+resource "azurerm_nat_gateway_public_ip_association" "main" {
+  nat_gateway_id       = azurerm_nat_gateway.main.id
+  public_ip_address_id = azurerm_public_ip.nat.id
+}
+
+# Attach the gateway to the agents subnet (owned by the foundation stack, referenced by data source).
+resource "azurerm_subnet_nat_gateway_association" "agents" {
+  subnet_id      = data.azurerm_subnet.agents.id
+  nat_gateway_id = azurerm_nat_gateway.main.id
+}
