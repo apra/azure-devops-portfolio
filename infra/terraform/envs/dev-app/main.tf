@@ -54,6 +54,8 @@ resource "azurerm_linux_web_app" "main" {
   location            = data.azurerm_resource_group.foundation.location
   service_plan_id     = azurerm_service_plan.main.id
 
+  public_network_access_enabled = false
+
   https_only = true
 
   # Gives the app its own identity in Entra ID, so it can later read Key Vault
