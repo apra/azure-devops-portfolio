@@ -56,6 +56,7 @@ resource "azurerm_linux_web_app" "main" {
   service_plan_id     = azurerm_service_plan.main.id
 
   public_network_access_enabled = false
+  virtual_network_subnet_id     = data.azurerm_subnet.appint.id
 
   https_only = true
 
@@ -243,4 +244,11 @@ resource "azurerm_private_endpoint" "webapp" {
   }
 
   tags = local.tags
+}
+
+# Subnet delegated to Microsoft.Web/serverFarms, owned by the foundation stack.
+data "azurerm_subnet" "appint" {
+  name                 = "snet-appint"
+  virtual_network_name = data.azurerm_virtual_network.foundation.name
+  resource_group_name  = data.azurerm_resource_group.foundation.name
 }
