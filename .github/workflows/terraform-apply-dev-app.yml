@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "infra/terraform/envs/dev-app/**"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,6 +16,7 @@ concurrency:
 
 jobs:
   apply:
+    if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/terraform-apply-stack.yml
     with:
       stack: dev-app
