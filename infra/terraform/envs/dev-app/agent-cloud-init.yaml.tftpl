@@ -1,0 +1,11 @@
+#cloud-config
+package_update: true
+packages:
+  - curl
+  - ca-certificates
+runcmd:
+  - install -d -o azureagent -g azureagent /opt/azdo-agent
+  - curl -fsSL --retry 5 --retry-delay 10 --retry-connrefused -o /tmp/agent.tgz "https://download.agent.dev.azure.com/agent/${agent_version}/vsts-agent-linux-x64-${agent_version}.tar.gz"
+  - runuser -u azureagent -- tar xzf /tmp/agent.tgz -C /opt/azdo-agent
+  - rm -f /tmp/agent.tgz
+  - DEBIAN_FRONTEND=noninteractive /opt/azdo-agent/bin/installdependencies.sh

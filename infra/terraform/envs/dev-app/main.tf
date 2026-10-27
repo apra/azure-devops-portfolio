@@ -9,6 +9,7 @@ locals {
     owner       = "apra"
     managed-by  = "terraform"
   }
+  agent_version = "5.281.1"
 }
 
 data "azurerm_resource_group" "foundation" {
@@ -110,6 +111,12 @@ resource "azurerm_linux_virtual_machine" "agent" {
   resource_group_name = data.azurerm_resource_group.foundation.name
   location            = data.azurerm_resource_group.foundation.location
   size                = "Standard_D2nls_v6"
+
+  custom_data = base64encode(templatefile("${path.module}/agent-cloud-init.yaml.tftpl", {
+    agent_version = local.agent_version
+  }))
+
+  depends_on = [azurerm_subnet_nat_gateway_association.agents]
 
   network_interface_ids = [azurerm_network_interface.agent.id]
   # This size only supports the NVMe disk controller (checked with az vm list-skus).
