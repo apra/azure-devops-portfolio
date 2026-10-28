@@ -252,3 +252,51 @@ data "azurerm_subnet" "appint" {
   virtual_network_name = data.azurerm_virtual_network.foundation.name
   resource_group_name  = data.azurerm_resource_group.foundation.name
 }
+
+
+locals {
+  # Same derivation as the foundation stack, so the vault can be found by name.
+  key_vault_name = "kv-pf-dev-uks-${substr(sha256(data.azurerm_client_config.current.subscription_id), 0, 6)}"
+}
+
+# Key Vault owned by the foundation stack.
+data "azurerm_key_vault" "main" {
+  name                = local.key_vault_name
+  resource_group_name = data.azurerm_resource_group.foundation.name
+}
+
+resource "azurerm_private_dns_zone" "key_vault" {
+  name                = "privatelink.vaultcore.azure.net"
+  resource_group_name = data.azurerm_resource_group.foundation.name
+  tags                = local.tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "key_vault" {
+  name                  = "link-vnet-portfolio-dev-uks-001"
+  resource_group_name   = data.azurerm_resource_group.foundation.name
+  private_dns_zone_name = azurerm_private_dns_zone.key_vault.name
+  virtual_network_id    = data.azurerm_virtual_network.foundation.id
+  registration_enabled  = false
+  tags                  = local.tags
+}
+
+resource "azurerm_private_endpoint" "key_vault" {
+  name                = "pe-kv-dev-uks-001"
+  resource_group_name = data.azurerm_resource_group.foundation.name
+  location            = data.azurerm_resource_group.foundation.location
+  subnet_id           = data.azurerm_subnet.pe.id
+
+  private_service_connection {
+    name                           = "psc-kv-dev-uks-001"
+    private_connection_resource_id = data.azurerm_key_vault.main.id
+    subresource_names              = ["vault"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "default"
+    private_dns_zone_ids = [azurerm_private_dns_zone.key_vault.id]
+  }
+
+  tags = local.tags
+}
