@@ -55,6 +55,10 @@ resource "azurerm_linux_web_app" "main" {
   location            = data.azurerm_resource_group.foundation.location
   service_plan_id     = azurerm_service_plan.main.id
 
+  app_settings = {
+    DEMO_MESSAGE = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault.main.vault_uri}secrets/demo-message/)"
+  }
+
   public_network_access_enabled = false
   virtual_network_subnet_id     = data.azurerm_subnet.appint.id
 
@@ -299,4 +303,12 @@ resource "azurerm_private_endpoint" "key_vault" {
   }
 
   tags = local.tags
+}
+
+# Read-only access to secret values, at the vault scope only, for the web app's own identity.
+resource "azurerm_role_assignment" "web_app_key_vault_secrets_user" {
+  scope                = data.azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_linux_web_app.main.identity[0].principal_id
+  principal_type       = "ServicePrincipal"
 }
