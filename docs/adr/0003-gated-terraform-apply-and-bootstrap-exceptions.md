@@ -94,3 +94,22 @@ by a condition to assigning and removing only the Key Vault Secrets User role.
 This allows the workload stack to grant its web app identity read access to the
 vault without giving the pipeline general role-assignment rights.
 The apply is performed from the merged main branch.
+
+
+### 29 October 2026: relaxation of the administrator's role condition (#78)
+The administrator account's Owner assignment carries a condition that excludes
+the privileged administrator roles (Owner, User Access Administrator and Role
+Based Access Control Administrator) from the roles it may assign. Creating the
+constrained Role Based Access Control Administrator assignment for the apply
+identity was refused under that condition. The personal Owner account removed
+the Role Based Access Control Administrator identifier from the condition for the
+duration of the apply and restored it immediately afterwards. The resulting
+assignment was verified, including its condition.
+
+### 29 October 2026: seeding the Key Vault test secret (#80)
+Terraform does not manage secret values. The vault denies public network access,
+so seeding a test secret required a temporary firewall rule for one public IP
+address and a temporary Key Vault Secrets Officer assignment for the
+administrator, both scoped to the vault. Both were removed immediately after the
+secret was written, and the removal was verified. A production process would seed
+secrets through a controlled pipeline or from within the private network.
