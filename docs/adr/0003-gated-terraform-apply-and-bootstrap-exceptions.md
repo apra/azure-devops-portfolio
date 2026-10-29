@@ -85,3 +85,12 @@ with Microsoft Authenticator registered. It was given Storage Blob Data Contribu
 Follow-ups: bring the admin's state access into the bootstrap script or shared stack; reduce
 Global Administrator to narrower roles once bootstrap work is done; use browser sign-in
 (`core.enable_broker_on_windows=false`), never device code.
+
+### 29 October 2026: RBAC Administrator for the apply identity (#78)
+The shared stack is applied manually, as a bootstrap exception, because it
+manages the identities the pipeline itself uses. The apply identity is granted
+Role Based Access Control Administrator on the dev resource group, constrained
+by a condition to assigning and removing only the Key Vault Secrets User role.
+This allows the workload stack to grant its web app identity read access to the
+vault without giving the pipeline general role-assignment rights.
+The apply is performed from the merged main branch.
