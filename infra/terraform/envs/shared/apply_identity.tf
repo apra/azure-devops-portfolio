@@ -38,7 +38,7 @@ resource "azurerm_role_assignment" "apply_dev_contributor" {
 }
 
 resource "azurerm_role_assignment" "apply_state_blob" {
-  scope                = data.azurerm_storage_account.apply_tfstate.id
+  scope                = local.tfstate_container_id
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = azuread_service_principal.github_apply.object_id
   principal_type       = "ServicePrincipal"

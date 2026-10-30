@@ -113,3 +113,11 @@ address and a temporary Key Vault Secrets Officer assignment for the
 administrator, both scoped to the vault. Both were removed immediately after the
 secret was written, and the removal was verified. A production process would seed
 secrets through a controlled pipeline or from within the private network.
+
+### 30 October 2026: scope of the pipeline identities' state access (#86)
+The shared stack is applied manually. The plan and apply identities held Storage
+Blob Data Contributor on the whole state storage account; both assignments are
+replaced with the same role scoped to the tfstate container. The plan identity
+retains write access because Terraform takes a lease on the state blob to lock
+state during planning. The apply is performed from the merged main branch with a
+saved plan.
