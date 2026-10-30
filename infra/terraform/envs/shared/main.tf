@@ -5,6 +5,11 @@ data "azurerm_storage_account" "tfstate" {
   resource_group_name = "rg-portfolio-tfstate-uks-001"
 }
 
+locals {
+  # State access is granted on the container that holds the state files, not on the whole account.
+  tfstate_container_id = "${data.azurerm_storage_account.tfstate.id}/blobServices/default/containers/tfstate"
+}
+
 resource "azuread_application" "github_plan" {
   display_name = "app-portfolio-github-plan"
 }
@@ -30,7 +35,7 @@ resource "azurerm_role_assignment" "plan_reader" {
 }
 
 resource "azurerm_role_assignment" "plan_state" {
-  scope                = data.azurerm_storage_account.tfstate.id
+  scope                = local.tfstate_container_id
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = azuread_service_principal.github_plan.object_id
   principal_type       = "ServicePrincipal"
