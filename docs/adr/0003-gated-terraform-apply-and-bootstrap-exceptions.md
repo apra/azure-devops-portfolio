@@ -121,3 +121,13 @@ replaced with the same role scoped to the tfstate container. The plan identity
 retains write access because Terraform takes a lease on the state blob to lock
 state during planning. The apply is performed from the merged main branch with a
 saved plan.
+
+### 30 October 2026: state resource group delete lock and stale state lock (#86)
+Replacing the pipeline identities' state role assignments required deleting the
+existing assignments. The state resource group carries a CanNotDelete lock
+(lock-tfstate), which refused the deletion. The lock was recorded, removed for the
+duration of the apply and recreated immediately afterwards with the same name and
+level, and its presence was verified. A first apply attempt also failed and left a
+stale Terraform state lock on the state blob. After confirming that no Terraform
+process was running, the lock was released with terraform force-unlock using the
+lock identifier reported in the error. Locking was not disabled for any run.
