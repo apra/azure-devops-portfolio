@@ -131,3 +131,10 @@ level, and its presence was verified. A first apply attempt also failed and left
 stale Terraform state lock on the state blob. After confirming that no Terraform
 process was running, the lock was released with terraform force-unlock using the
 lock identifier reported in the error. Locking was not disabled for any run.
+
+### 31 October 2026: deployment identity for Azure Pipelines (#90)
+The shared stack is applied manually. A service principal with a federated
+credential is created for the Azure DevOps service connection, with Website
+Contributor and Reader on the dev resource group. The credential trusts a single
+service connection and no secret exists. The apply is performed from the merged
+main branch with a saved plan.
