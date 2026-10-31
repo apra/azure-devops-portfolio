@@ -56,7 +56,8 @@ resource "azurerm_linux_web_app" "main" {
   service_plan_id     = azurerm_service_plan.main.id
 
   app_settings = {
-    DEMO_MESSAGE = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault.main.vault_uri}secrets/demo-message/)"
+    DEMO_MESSAGE                   = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault.main.vault_uri}secrets/demo-message/)"
+    SCM_DO_BUILD_DURING_DEPLOYMENT = "true"
   }
 
   public_network_access_enabled = false

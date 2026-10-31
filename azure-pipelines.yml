@@ -1,0 +1,48 @@
+# Manual runs only while the pipeline is being proven.
+trigger: none
+pr: none
+
+variables:
+  webAppName: app-portfolio-dev-uks-bd8343
+
+stages:
+  - stage: Build
+    jobs:
+      - job: package
+        pool:
+          name: pool-private-uks
+        steps:
+          - task: ArchiveFiles@2
+            displayName: Package app
+            inputs:
+              rootFolderOrFile: apps/hello-web
+              includeRootFolder: false
+              archiveType: zip
+              archiveFile: $(Build.ArtifactStagingDirectory)/app.zip
+          - publish: $(Build.ArtifactStagingDirectory)/app.zip
+            artifact: app
+
+  - stage: Deploy
+    dependsOn: Build
+    jobs:
+      - deployment: deploy
+        pool:
+          name: pool-private-uks
+        environment: dev
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureWebApp@1
+                  displayName: Deploy to private web app
+                  inputs:
+                    azureSubscription: sc-azure-portfolio-dev
+                    appType: webAppLinux
+                    appName: $(webAppName)
+                    package: $(Pipeline.Workspace)/app/app.zip
+                - script: |
+                    set -e
+                    curl -fsS --retry 12 --retry-delay 15 --retry-all-errors \
+                      "https://$(webAppName).azurewebsites.net/" | tee response.json
+                    grep -q "hello-from-key-vault" response.json
+                  displayName: Verify the app from inside the network
