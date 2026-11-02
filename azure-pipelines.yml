@@ -41,8 +41,16 @@ stages:
                     appName: $(webAppName)
                     package: $(Pipeline.Workspace)/app/app.zip
                 - script: |
-                    set -e
-                    curl -fsS --retry 12 --retry-delay 15 --retry-all-errors \
-                      "https://$(webAppName).azurewebsites.net/" | tee response.json
-                    grep -q "hello-from-key-vault" response.json
+                    set -u
+                    url="https://$(webAppName).azurewebsites.net/"
+                    for attempt in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+                      if curl -fsS --max-time 20 "$url" | grep -q "hello-from-key-vault"; then
+                        echo "Expected response received on attempt ${attempt}."
+                        exit 0
+                      fi
+                      echo "Attempt ${attempt} of 20: expected response not yet returned. Waiting 15 seconds."
+                      sleep 15
+                    done
+                    echo "Expected response was not returned within the time limit."
+                    exit 1
                   displayName: Verify the app from inside the network
