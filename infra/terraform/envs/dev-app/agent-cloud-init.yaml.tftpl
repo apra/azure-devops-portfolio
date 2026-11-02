@@ -3,6 +3,7 @@ package_update: true
 packages:
   - curl
   - ca-certificates
+  - zip
 runcmd:
   - install -d -o azureagent -g azureagent /opt/azdo-agent
   - curl -fsSL --retry 5 --retry-delay 10 --retry-connrefused -o /tmp/agent.tgz "https://download.agent.dev.azure.com/agent/${agent_version}/vsts-agent-linux-x64-${agent_version}.tar.gz"
