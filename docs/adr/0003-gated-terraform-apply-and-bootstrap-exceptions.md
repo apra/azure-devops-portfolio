@@ -138,3 +138,22 @@ credential is created for the Azure DevOps service connection, with Website
 Contributor and Reader on the dev resource group. The credential trusts a single
 service connection and no secret exists. The apply is performed from the merged
 main branch with a saved plan.
+### 2 November 2026: Azure DevOps pipeline definition and project access (#98)
+The pipeline definition for the application deployment was created in the Azure
+DevOps interface and not in Terraform. The Azure DevOps Terraform provider
+requires a credential for the organisation and a GitHub service connection,
+which needs either a personal access token or an interactive GitHub App
+authorisation. Neither is acceptable at this stage, and managing the definition
+as code is deferred to a later phase. The Azure Pipelines GitHub App was
+installed on this repository only. The self-hosted agent pool was linked to the
+project without granting access to all pipelines. The service connection, the
+dev environment and the agent pool were each authorised for this one pipeline on
+its first run.
+
+### 2 November 2026: manual installation of zip on the build agent (#96)
+The first pipeline run failed because the archive task requires the zip utility,
+which the base image does not include. The package was installed on the running
+agent through a run command, which left the VM differing from its code
+definition. The first-boot configuration now installs the package (#96), and the
+agent is rebuilt from code at the start of each session, so the difference does
+not persist.
