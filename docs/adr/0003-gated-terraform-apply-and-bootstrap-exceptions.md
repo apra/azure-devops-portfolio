@@ -157,3 +157,12 @@ agent through a run command, which left the VM differing from its code
 definition. The first-boot configuration now installs the package (#96), and the
 agent is rebuilt from code at the start of each session, so the difference does
 not persist.
+
+### 17 November 2026: Key Vault public network access disabled (#100)
+Public network access on the Key Vault is disabled, so the private endpoint is
+the only path to the vault. The method used on 29 October 2026 to seed the test
+secret, a temporary firewall rule for one public IP address, no longer works and
+is not to be repeated. Secret values are written from inside the network, from
+the private build agent, or by a controlled pipeline. Terraform continues to
+manage no secret values. The change is applied through the gated foundation
+pipeline.
