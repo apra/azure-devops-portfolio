@@ -20,7 +20,10 @@ resource "azurerm_key_vault" "main" {
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
 
-  # No network path in until the private endpoint exists.
+  # The public endpoint is disabled: the private endpoint is the only path to the vault.
+  # The network rules are kept as a second layer in case this setting is ever changed.
+  public_network_access_enabled = false
+
   network_acls {
     default_action = "Deny"
     bypass         = "AzureServices"
