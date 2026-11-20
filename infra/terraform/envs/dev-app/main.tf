@@ -10,6 +10,9 @@ locals {
     managed-by  = "terraform"
   }
   agent_version = "5.281.1"
+  # SHA-256 of vsts-agent-linux-x64-<agent_version>.tar.gz, from the publisher's release notes.
+  # It is valid for this version only and must be updated whenever agent_version changes.
+  agent_sha256 = "c9579f76fd71a013e3b9010155454e20592d935134e4fcd04adc5283a820167e"
 }
 
 data "azurerm_resource_group" "foundation" {
@@ -119,7 +122,7 @@ resource "azurerm_linux_virtual_machine" "agent" {
   size                = "Standard_D2nls_v6"
 
   custom_data = base64encode(templatefile("${path.module}/agent-cloud-init.yaml.tftpl", {
-    agent_version = local.agent_version
+    agent_version = local.agent_version, agent_sha256 = local.agent_sha256
   }))
 
   depends_on = [azurerm_subnet_nat_gateway_association.agents]

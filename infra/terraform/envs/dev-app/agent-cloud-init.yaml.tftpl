@@ -7,6 +7,7 @@ packages:
 runcmd:
   - install -d -o azureagent -g azureagent /opt/azdo-agent
   - curl -fsSL --retry 5 --retry-delay 10 --retry-connrefused -o /tmp/agent.tgz "https://download.agent.dev.azure.com/agent/${agent_version}/vsts-agent-linux-x64-${agent_version}.tar.gz"
+  - echo "${agent_sha256}  /tmp/agent.tgz" | sha256sum -c - || { echo "Agent archive checksum mismatch; aborting first boot." >&2; rm -f /tmp/agent.tgz; exit 1; }
   - runuser -u azureagent -- tar xzf /tmp/agent.tgz -C /opt/azdo-agent
   - rm -f /tmp/agent.tgz
   - DEBIAN_FRONTEND=noninteractive /opt/azdo-agent/bin/installdependencies.sh
