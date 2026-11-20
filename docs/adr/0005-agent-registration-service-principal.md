@@ -49,3 +49,11 @@ installed by a one-off run command.
 - Store the registration secret in Key Vault and let the virtual machine retrieve
   it through its managed identity at registration time.
 - Compare with Managed DevOps Pools, which do not require a registration secret.
+## Status update, 20 November 2026
+
+- Bootstrapping the agent software through cloud-init is implemented.
+- Verification of the agent download against the vendor's published SHA-256 value
+  is implemented (#102). It was not in the original follow-up list and was added
+  as a hardening step.
+- Storing the registration secret in Key Vault remains open.
+- The comparison with Managed DevOps Pools remains scheduled for Phase B.
